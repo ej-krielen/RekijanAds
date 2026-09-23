@@ -25,8 +25,7 @@ android {
 dependencies {
     implementation libs.appcompat
     implementation libs.material
-    implementation 'com.google.android.gms:play-services-ads:23.3.0'
-    implementation 'com.google.android.ump:user-messaging-platform:2.2.0'
+    implementation 'com.google.android.gms:play-services-ads:25.5.0'
     implementation 'androidx.annotation:annotation:1.8.0'
     testImplementation libs.junit
     androidTestImplementation libs.espresso.core
