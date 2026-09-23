@@ -19,6 +19,11 @@ import com.google.android.ump.UserMessagingPlatform;
  * is made. This class handles that check, shows the consent form only when
  * required, and only then initializes the Mobile Ads SDK.
  *
+ * It also offers the privacy options entry point: users who were asked for consent must be able
+ * to change or withdraw it later. Show a "Privacy settings" item when
+ * {@link #isPrivacyOptionsRequired()} is true and call {@link #showPrivacyOptionsForm(Callback)}
+ * when the user taps it.
+ *
  * One instance per Activity that shows ads (usually your main/host Activity).
  * Call {@link #requestConsentThenInit(Callback, String...)} once, early, before showing
  * any {@link RekijanBannerAdView} or requesting a rewarded ad
@@ -85,6 +90,33 @@ public class AdConsentManager {
     /** True once consent status is known and ads (personalized or not) may be requested. */
     public boolean canRequestAds() {
         return consentInformation.canRequestAds();
+    }
+
+    /**
+     * True when the app must offer a way to change the consent choices, typically for users in
+     * the EEA/UK. Only reliable after {@link #requestConsentThenInit(Callback, String...)} has
+     * reported back; before that the status is unknown and this returns false.
+     */
+    public boolean isPrivacyOptionsRequired() {
+        return consentInformation.getPrivacyOptionsRequirementStatus()
+                == ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED;
+    }
+
+    /**
+     * Shows Google's privacy options form, where the user can change or withdraw their consent.
+     * Only call this in response to a user action, such as tapping a "Privacy settings" item.
+     *
+     * When the form closes, the callback reports the new situation: {@link Callback#onReady()}
+     * if ads may be requested (the caller can reload its banner so the new choice is used),
+     * {@link Callback#onFailure(String)} if they may not (the caller should remove its banner).
+     */
+    public void showPrivacyOptionsForm(@NonNull Callback callback) {
+        UserMessagingPlatform.showPrivacyOptionsForm(activity, (FormError formError) -> {
+            if (formError != null) {
+                Log.w(TAG, "Privacy options form error: " + formError.getMessage());
+            }
+            initializeMobileAds(callback);
+        });
     }
 
     private void initializeMobileAds(@NonNull Callback callback) {
